@@ -79,12 +79,23 @@ module Protobuf
     end
 
     def read_int64
-      n = read_uint64
-      return nil if n.nil?
-      if n > Int64::MAX
-        n -= Int64::MAX.to_u64 + 1_u64
+      n = shift = 0_i64
+      loop do
+        if shift >= 64
+          raise Error.new("buffer overflow varint")
+        end
+        byte = @io.read_byte
+        if byte.nil?
+          return nil
+        end
+        b = byte.unsafe_chr.ord
+
+        n |= ((b & 0x7F).to_i64 << shift)
+        shift += 7
+        if (b & 0x80) == 0
+          return n.to_i64
+        end
       end
-      n.to_i64!
     end
 
     def read_int32

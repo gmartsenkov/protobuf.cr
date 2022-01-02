@@ -18,6 +18,19 @@ describe "Protobuf::Message" do
     msg2.f2.should eq 131459961885904000_i64
   end
 
+  it "V3 int64 encode decode" do
+    msg = TestMessagesV3::Test3.new
+    msg.f2=-15000_i64
+
+    some_io = IO::Memory.new
+    msg.to_protobuf some_io
+
+    some_io.rewind
+
+    msg2 = TestMessagesV3::Test3.from_protobuf some_io
+    msg2.f2.should eq -15000_i64
+  end
+
   it "V3 uint64 encode decode" do
     msg = TestMessagesV3::Test3.new
     msg.uint64=131459961885904000_u64
